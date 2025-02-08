@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.rainbow-footer {
+  background-image: linear-gradient(to right, rgb(255, 0, 0), green, rgb(96, 218, 255), rgb(0, 0, 0));
+  background-size: 400% 400%;
+  animation: rainbow 5s linear infinite;
+}
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-rainbow {
+  background-image: linear-gradient(to right, rgb(253, 0, 0), green, rgb(96, 218, 255), rgb(0, 0, 0));
+  background-size: 400% 400%;
+  animation: rainbow 5s linear infinite;
+}
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
