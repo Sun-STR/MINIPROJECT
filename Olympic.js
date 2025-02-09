@@ -53,46 +53,77 @@ const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
 const [currentPage, setCurrentPage] = useState(1);
+const [pageInput, setPageInput] = useState(""); // เก็บค่าที่ผู้ใช้กรอก
 const dataPerPage = 10;
 
-// Calculate the current data to be shown on the current page
 const indexOfLastData = currentPage * dataPerPage;
 const indexOfFirstData = indexOfLastData - dataPerPage;
 const currentData = data.slice(indexOfFirstData, indexOfLastData);
 
 const totalPages = Math.ceil(data.length / dataPerPage);
 
-const pageGroupSize = 10;
-const currentGroup = Math.floor((currentPage - 1) / pageGroupSize);
-
-const startPage = currentGroup * pageGroupSize + 1;
-const endPage = Math.min((currentGroup + 1) * pageGroupSize, totalPages);
+const maxPagesToShow = 10;
+const startPage = Math.floor((currentPage - 1) / maxPagesToShow) * maxPagesToShow + 1;
+const endPage = Math.min(startPage + maxPagesToShow - 1, totalPages);
 const displayedPages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
 
 const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+    }
 };
 
 const handleNextPage = () => {
-    if (currentPage < endPage) {
+    if (currentPage < totalPages) {
         setCurrentPage(currentPage + 1);
     }
 };
+
 const handlePreviousPage = () => {
-    if (currentPage > startPage) {
+    if (currentPage > 1) {
         setCurrentPage(currentPage - 1);
     }
 };
-const handleNextGroup = () => {
-    if (currentGroup < Math.floor(totalPages / pageGroupSize)) {
-        setCurrentPage((currentGroup + 1) * pageGroupSize + 1);
+
+const handleFirstPage = () => {
+    setCurrentPage(1);
+};
+
+const handleLastPage = () => {
+    setCurrentPage(totalPages);
+};
+
+// ฟังก์ชันสำหรับค้นหาหน้า
+const handleGoToPage = () => {
+    const pageNumber = Number(pageInput);
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+        setPageInput(""); // รีเซ็ตค่า input
+    } else {
+        alert(`กรุณากรอกหมายเลขหน้า 1 - ${totalPages}`);
     }
 };
-const handlePreviousGroup = () => {
-    if (currentGroup > 0) {
-        setCurrentPage(currentGroup * pageGroupSize);
+
+
+const handleInputChange = (e) => {
+    const value = e.target.value;
+    if (/^[1-9]\d*$/.test(value) || value === "") { // เช็คว่าเป็นตัวเลขที่มากกว่า 0 เท่านั้น
+        setPageInput(value);
     }
 };
+
+
+const buttonStyle = {
+    padding: "10px 15px",
+    margin: "0 5px",
+    border: "none",
+    backgroundColor: "#4CAF50",
+    color: "white",
+    cursor: "pointer",
+    borderRadius: "5px",
+    transition: "background-color 0.3s",
+};
+
     useEffect(() => {
         fetch("http://localhost:3001/olympics2024")
             .then((response) => {
@@ -172,6 +203,7 @@ const handlePreviousGroup = () => {
             })
             .then((data) => {
                 setData(data);
+                alert("อัพเดตข้อมูลสำเร็จ!");
             })
             .catch((err) => {
                 console.log(err);
@@ -203,6 +235,7 @@ const handlePreviousGroup = () => {
             })
             .then((data) => {
                 setData(data);
+                alert("ลบข้อมูลสำเร็จ!");
             })
             .catch((err) => {
                 console.log(err);
@@ -285,6 +318,7 @@ const handleSearch = () => {
             })
             .then((data) => {
                 setData(data);
+                alert("เพิ่มข้อมูลสำเร็จ!");
             })
             .catch((err) => {
                 console.log(err);
@@ -351,106 +385,56 @@ const handleSearch = () => {
                 </tbody>
             </table>
             <div style={{ textAlign: "center", margin: "20px 0" }}>
-        {/* Previous Group Button */}
-        <button
-            onClick={handlePreviousGroup}
-            disabled={currentGroup === 0}
-            style={{
-                padding: "10px 15px",
-                margin: "0 5px",
-                border: "none",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                cursor: currentGroup === 0 ? "not-allowed" : "pointer",
-                borderRadius: "5px",
-                opacity: currentGroup === 0 ? 0.5 : 1,
-                transition: "background-color 0.3s",
-            }}
-        >
-            Previous Group
+        <button onClick={handleFirstPage} disabled={currentPage === 1} style={buttonStyle}>
+            ⏮ First
+        </button>
+        <button onClick={handlePreviousPage} disabled={currentPage === 1} style={buttonStyle}>
+            ◀ Previous
         </button>
 
-        {/* Previous Page Button */}
-        <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === startPage}
-            style={{
-                padding: "10px 15px",
-                margin: "0 5px",
-                border: "none",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                cursor: currentPage === startPage ? "not-allowed" : "pointer",
-                borderRadius: "5px",
-                opacity: currentPage === startPage ? 0.5 : 1,
-                transition: "background-color 0.3s",
-            }}
-        >
-            Previous
-        </button>
-
-        {/* Render page numbers for the current group */}
         {displayedPages.map((pageNumber) => (
             <button
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
                 style={{
-                    padding: "10px 15px",
-                    margin: "0 5px",
-                    border: "none",
+                    ...buttonStyle,
                     backgroundColor: currentPage === pageNumber ? "#4CAF50" : "#f1f1f1",
                     color: currentPage === pageNumber ? "white" : "#333",
-                    cursor: "pointer",
-                    borderRadius: "5px",
                     fontWeight: currentPage === pageNumber ? "bold" : "normal",
-                    transition: "background-color 0.3s, color 0.3s",
                 }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = "#ddd"}
-                onMouseLeave={(e) => e.target.style.backgroundColor = currentPage === pageNumber ? "#4CAF50" : "#f1f1f1"}
             >
                 {pageNumber}
             </button>
         ))}
 
-        {/* Next Page Button */}
-        <button
-            onClick={handleNextPage}
-            disabled={currentPage === endPage}
-            style={{
-                padding: "10px 15px",
-                margin: "0 5px",
-                border: "none",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                cursor: currentPage === endPage ? "not-allowed" : "pointer",
-                borderRadius: "5px",
-                opacity: currentPage === endPage ? 0.5 : 1,
-                transition: "background-color 0.3s",
-            }}
-        >
-            Next
+        <button onClick={handleNextPage} disabled={currentPage === totalPages} style={buttonStyle}>
+            Next ▶
+        </button>
+        <button onClick={handleLastPage} disabled={currentPage === totalPages} style={buttonStyle}>
+            Last ⏭
         </button>
 
-        {/* Next Group Button */}
-        <button
-            onClick={handleNextGroup}
-            disabled={currentGroup === Math.floor(totalPages / pageGroupSize)}
-            style={{
-                padding: "10px 15px",
-                margin: "0 5px",
-                border: "none",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                cursor: currentGroup === Math.floor(totalPages / pageGroupSize) ? "not-allowed" : "pointer",
-                borderRadius: "5px",
-                opacity: currentGroup === Math.floor(totalPages / pageGroupSize) ? 0.5 : 1,
-                transition: "background-color 0.3s",
-            }}
-        >
-            Next Group
-        </button>
+        {/* ช่องค้นหาหมายเลขหน้า */}
+        <div style={{ marginTop: "10px" }}>
+            <input
+                type="text" // ใช้ text แทน number
+                value={pageInput}
+                onChange={handleInputChange}
+                placeholder="ไปหน้าที่..."
+                style={{
+                    padding: "8px",
+                    width: "80px",
+                    marginRight: "5px",
+                    borderRadius: "5px",
+                    border: "1px solid #ccc",
+                    textAlign: "center",
+                }}
+            />
+            <button onClick={handleGoToPage} style={buttonStyle}>
+                Go
+            </button>
+        </div>
     </div>
-
             {/* Modals for Create, Edit, and Delete */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
